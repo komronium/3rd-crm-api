@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import OperatorUpdate, UserCreate, UserUpdate
 
 
 class UserService:
@@ -62,6 +62,36 @@ class UserService:
         for key, value in user.model_dump().items():
             if value is not None:
                 setattr(db_user, key, value)
+
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+
+    @staticmethod
+    async def update_operator(
+        db: Session, user_id: int, operator: OperatorUpdate
+    ) -> User:
+        db_user = UserService._get_user_or_404(db, user_id)
+
+        update_data = operator.model_dump(exclude_unset=True, exclude_none=True)
+
+        if "username" in update_data and update_data["username"] != db_user.username:
+            existing_user = (
+                db.query(User)
+                .filter(User.username == update_data["username"], User.id != user_id)
+                .first()
+            )
+            if existing_user:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Username already exists",
+                )
+
+        if "password" in update_data:
+            update_data["password"] = hash_password(update_data["password"])
+
+        for key, value in update_data.items():
+            setattr(db_user, key, value)
 
         db.commit()
         db.refresh(db_user)

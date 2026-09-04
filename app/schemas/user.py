@@ -17,6 +17,13 @@ class UserUpdate(BaseModel):
     name: Optional[str] = None
 
 
+class OperatorUpdate(BaseModel):
+    username: Optional[str] = None
+    name: Optional[str] = None
+    password: Optional[str] = Field(default=None, min_length=1, max_length=128)
+    is_active: Optional[bool] = None
+
+
 class UserOut(UserBase):
     id: int
     is_active: bool

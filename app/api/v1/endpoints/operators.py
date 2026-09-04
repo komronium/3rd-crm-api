@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_admin_user, get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserOut, UserUpdate
+from app.schemas.user import OperatorUpdate, UserCreate, UserOut
 from app.services.user_service import UserService
 
 router = APIRouter(
@@ -36,6 +36,22 @@ async def list_operators(db: Session = Depends(get_db)) -> List[User]:
 )
 async def create_operator(user: UserCreate, db: Session = Depends(get_db)) -> User:
     return await UserService.create_user(user, db)
+
+
+@router.patch(
+    "/{user_id}",
+    response_model=UserOut,
+    status_code=status.HTTP_200_OK,
+    responses={
+        400: {"description": "Invalid credentials"},
+        401: {"description": "Unauthorized"},
+        404: {"description": "Not found"},
+    },
+)
+async def update_operator(
+    user_id: int, operator: OperatorUpdate, db: Session = Depends(get_db)
+) -> User:
+    return await UserService.update_operator(db, user_id, operator)
 
 
 @router.delete(
