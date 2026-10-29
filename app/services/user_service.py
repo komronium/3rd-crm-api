@@ -75,6 +75,12 @@ class UserService:
 
         update_data = operator.model_dump(exclude_unset=True, exclude_none=True)
 
+        if db_user.is_admin and update_data.get("is_active") is False:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Admin hisobini o'chirib bo'lmaydi",
+            )
+
         if "username" in update_data and update_data["username"] != db_user.username:
             existing_user = (
                 db.query(User)
@@ -96,6 +102,18 @@ class UserService:
         db.commit()
         db.refresh(db_user)
         return db_user
+
+    @staticmethod
+    async def delete_operator(db: Session, user_id: int) -> None:
+        """Operators can be removed; admin accounts cannot (that would be able to lock everyone out)."""
+        db_user = UserService._get_user_or_404(db, user_id)
+        if db_user.is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Admin hisobini o'chirib bo'lmaydi",
+            )
+        db.delete(db_user)
+        db.commit()
 
     @staticmethod
     async def delete_user(db: Session, user_id: int) -> None:

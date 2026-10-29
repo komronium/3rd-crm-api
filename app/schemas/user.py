@@ -10,7 +10,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=1, max_length=128)
+    password: str = Field(..., min_length=8, max_length=128)
 
 
 class UserUpdate(BaseModel):
@@ -20,7 +20,7 @@ class UserUpdate(BaseModel):
 class OperatorUpdate(BaseModel):
     username: Optional[str] = None
     name: Optional[str] = None
-    password: Optional[str] = Field(default=None, min_length=1, max_length=128)
+    password: Optional[str] = Field(default=None, min_length=8, max_length=128)
     is_active: Optional[bool] = None
 
 

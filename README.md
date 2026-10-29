@@ -54,3 +54,20 @@ pip install -r requirements.txt
 # Run development server
 uvicorn app.main:app --reload
 ```
+
+## Tests
+
+```bash
+pip install -r requirements.txt
+python -m pytest -q tests
+```
+
+The tests run on SQLite (the Postgres `JSONB` column is mapped to `JSON` for them), so they need no database.
+
+## Notes for operators
+
+- Every `/api/v1/leads/*` route requires a signed-in user (Bearer token); interactive docs are only served when `DEBUG=true`.
+- Login is locked for 15 minutes after 5 wrong passwords (per username and client address, per worker process).
+- Dashboard days and statistics use the business timezone (`TIMEZONE`, default `Asia/Tashkent`), not UTC.
+- Facebook import: credentials entered in the CRM settings win over `.env`. Only one worker process polls Facebook per
+  round (PostgreSQL advisory lock). A bad or expired token is reported once every 30 minutes in the service log.
